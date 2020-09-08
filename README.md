@@ -1,3 +1,7 @@
+[![Current Crates.io Version](https://img.shields.io/crates/v/hexlit.svg)](https://crates.io/crates/hexlit)
+[![docs-rs](https://docs.rs/hexlit/badge.svg)](https://docs.rs/hexlit)
+![MSRV 1.46+](https://img.shields.io/badge/rustc-1.46+-blue.svg)
+
 # hexlit
 A zero-allocation no_std-compatible zero-cost way to convert hex-strings to byte-arrays at compile time.
 

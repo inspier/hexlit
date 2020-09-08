@@ -19,9 +19,9 @@ jobs:
   - bash: |
       source $HOME/.cargo/env
       cargo build
-    displayName: 'Build pkhexcore'
+    displayName: 'Build hexlit'
 
   - bash: |
       source $HOME/.cargo/env
       cargo test
-    displayName: 'Test pkhexcore'
+    displayName: 'Test hexlit'

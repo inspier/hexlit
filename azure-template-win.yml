@@ -17,7 +17,7 @@ jobs:
     displayName: 'Install rust'
   - powershell: |
       cargo build
-    displayName: 'Build pkhexcore'
+    displayName: 'Build hexlit'
   - powershell: |
       cargo test
-    displayName: 'Test pkhexcore'
+    displayName: 'Test hexlit'
