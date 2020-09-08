@@ -4,7 +4,7 @@
 //! # Examples
 //! ```
 //! use hexlit::hex;
-//! 
+//!
 //! fn main() {
 //! const DATA: [u8; 4] = hex!("01020304");
 //! assert_eq!(DATA, [1, 2, 3, 4]);
@@ -18,13 +18,15 @@
 #[macro_export]
 macro_rules! hex {
     ($arg:expr) => {{
-        const RESULT: [u8; $arg.len() / 2] = {
+        const ARRAY_LENGTH: usize = $arg.len() / 2;
+        const RESULT: [u8; ARRAY_LENGTH] = {
             // Hack needed for const-eval to work
             const fn always_true() -> bool {
                 true
             }
+
             /// Converts a individual byte into its correct integer counterpart
-            const fn to_int(input: u8) -> u8 {
+            const fn to_ordinal(input: u8) -> u8 {
                 const ZERO: u8 = 48;
                 const NINE: u8 = 57;
                 const UPPER_A: u8 = 65;
@@ -43,13 +45,15 @@ macro_rules! hex {
             }
 
             // Converts a hex-string to its byte array representationc
-            const fn convert(s: &str) -> [u8; $arg.len() / 2] {
+            const fn convert(s: &str) -> [u8; ARRAY_LENGTH] {
                 let s = s.as_bytes();
-                let mut data = [0u8; $arg.len() / 2];
+                let mut data = [0u8; ARRAY_LENGTH];
                 let mut data_index = 0usize;
                 let mut char_index = 0usize;
-                while data_index < s.len() && char_index < s.len() && char_index + 1 < s.len() {
-                    data[data_index] = to_int(s[char_index]) * 16 + to_int(s[char_index + 1]);
+                let string_length = s.len();
+                while data_index < string_length && char_index + 1 < string_length {
+                    data[data_index] =
+                        to_ordinal(s[char_index]) * 16 + to_ordinal(s[char_index + 1]);
                     data_index += 1;
                     char_index += 2;
                 }
