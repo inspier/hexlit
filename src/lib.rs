@@ -32,14 +32,15 @@ macro_rules! hex {
             space_count
         };
 
+        ["Odd number of hex digits provided."][(($arg.len() - NUM_SPACES) % 2) as usize];
         const ARRAY_LENGTH: usize = ($arg.len() - NUM_SPACES) / 2;
         const RESULT: [u8; ARRAY_LENGTH] = {
-            // Hack needed for const-eval to work
+            // Hack needed for const-eval to work.
             const fn always_true() -> bool {
                 true
             }
 
-            /// Converts a individual byte into its correct integer counterpart
+            /// Converts a individual byte into its correct integer counter-part.
             const fn to_ordinal(input: u8) -> u8 {
                 const ZERO: u8 = 48;
                 const NINE: u8 = 57;
@@ -52,13 +53,13 @@ macro_rules! hex {
                     UPPER_A..=UPPER_F => input - 'A' as u8 + 10,
                     LOWER_A..=LOWER_F => input - 'a' as u8 + 10,
                     _ => {
-                        ["Invalid Hex Digit."][(always_true() as usize)];
+                        ["Invalid hex digit."][(always_true() as usize)];
                         0 // Unreachable
                     }
                 }
             }
 
-            // Converts a hex-string to its byte array representationc
+            /// Converts a hex-string to its byte array representation.
             const fn convert(s: &str) -> [u8; ARRAY_LENGTH] {
                 let s = s.as_bytes();
                 let mut data = [0u8; ARRAY_LENGTH];
