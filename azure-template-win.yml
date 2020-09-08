@@ -1,0 +1,23 @@
+parameters:
+  name: ''
+  vmImage: ''
+  toolchain: 'stable'
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.vmImage }}
+  variables:
+    toolchain: ${{ parameters.toolchain }}
+  steps:
+  - powershell: |
+      #Invoke-WebRequest -Uri "https://win.rustup.rs" -OutFile "rustup-init.exe"
+      #&".\rustup-init.exe" --default-toolchain $(toolchain) -y
+      rustup show
+    displayName: 'Install rust'
+  - powershell: |
+      cargo build
+    displayName: 'Build pkhexcore'
+  - powershell: |
+      cargo test
+    displayName: 'Test pkhexcore'
