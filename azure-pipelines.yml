@@ -22,9 +22,3 @@ jobs:
     name: 'Linux_stable'
     vmImage: 'ubuntu-latest'
     toolchain: 'stable'
-
-- template: 'azure-template-win.yml'
-  parameters:
-    name: 'Windows_stable'
-    vmImage: 'windows-latest'
-    toolchain: 'stable'
