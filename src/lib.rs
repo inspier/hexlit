@@ -11,29 +11,55 @@
 //! assert_eq!(hex!("a1b2c3d4"), [0xA1, 0xB2, 0xC3, 0xD4]);
 //! assert_eq!(hex!("E5 E6 90 92"), [0xE5, 0xE6, 0x90, 0x92]);
 //! assert_eq!(hex!("0a0B0C0d"), [10, 11, 12, 13]);
+//! assert_eq!(hex!(0a "01" 0C 02), [10, 1, 12, 2]);
 //! }
 //! ```
 #![no_std]
 
 #[macro_export]
 macro_rules! hex {
-    ($arg:expr) => {{
-        const SPACE: u8 = 32;
+    (@string $arg:expr) => {{
         const NUM_SPACES: usize = {
             let data = $arg.as_bytes();
             let mut space_count: usize = 0;
             let mut char_index: usize = 0;
             while char_index < data.len() {
-                if data[char_index] == SPACE {
+                if data[char_index] == b' ' {
                     space_count += 1;
                 }
                 char_index += 1;
             }
             space_count
         };
+        const NUM_UNDERSCORES: usize = {
+            let data = $arg.as_bytes();
+            let mut underscore_count: usize = 0;
+            let mut char_index: usize = 0;
+            while char_index < data.len() {
+                if data[char_index] == b'_' {
+                    underscore_count += 1;
+                }
+                char_index += 1;
+            }
+            underscore_count
+        };
+        const NUM_QUOTES: usize = {
+            let data = $arg.as_bytes();
+            let mut underscore_count: usize = 0;
+            let mut char_index: usize = 0;
+            while char_index < data.len() {
+                if data[char_index] == b'"' {
+                    underscore_count += 1;
+                }
+                char_index += 1;
+            }
+            underscore_count
+        };
 
-        ["Odd number of hex digits provided."][(($arg.len() - NUM_SPACES) % 2) as usize];
-        const ARRAY_LENGTH: usize = ($arg.len() - NUM_SPACES) / 2;
+        const NUM_SKIPPED: usize = NUM_SPACES + NUM_UNDERSCORES + NUM_QUOTES;
+
+        ["Odd number of hex digits provided."][(($arg.len() - NUM_SKIPPED) % 2) as usize];
+        const ARRAY_LENGTH: usize = ($arg.len() - NUM_SKIPPED) / 2;
         const RESULT: [u8; ARRAY_LENGTH] = {
             // Hack needed for const-eval to work.
             const fn always_true() -> bool {
@@ -42,16 +68,10 @@ macro_rules! hex {
 
             /// Converts a individual byte into its correct integer counter-part.
             const fn to_ordinal(input: u8) -> u8 {
-                const ZERO: u8 = 48;
-                const NINE: u8 = 57;
-                const UPPER_A: u8 = 65;
-                const UPPER_F: u8 = 70;
-                const LOWER_A: u8 = 97;
-                const LOWER_F: u8 = 102;
                 match input {
-                    ZERO..=NINE => input - '0' as u8,
-                    UPPER_A..=UPPER_F => input - 'A' as u8 + 10,
-                    LOWER_A..=LOWER_F => input - 'a' as u8 + 10,
+                    b'0'..=b'9' => input - b'0',
+                    b'A'..=b'F' => input - b'A' + 10,
+                    b'a'..=b'f' => input - b'a' + 10,
                     _ => {
                         ["Invalid hex digit."][(always_true() as usize)];
                         0 // Unreachable
@@ -67,7 +87,7 @@ macro_rules! hex {
                 let mut char_index: usize = 0;
                 let string_length = s.len();
                 while data_index < string_length && char_index + 1 < string_length {
-                    if s[char_index] != SPACE {
+                    if s[char_index] != b' ' && s[char_index] != b'_' && s[char_index] != b'"' {
                         data[data_index] =
                             to_ordinal(s[char_index]) * 16 + to_ordinal(s[char_index + 1]);
                         char_index += 2;
@@ -82,6 +102,9 @@ macro_rules! hex {
         };
         RESULT
     }};
+    ($($tt:tt)*) => {
+        hex!(@string stringify!($($tt)*))
+    };
 }
 
 #[cfg(test)]
@@ -126,5 +149,30 @@ mod tests {
     #[test]
     fn test_alphanumeric_mixed_space() {
         assert_eq!(hex!("0a 0B 0C 0d"), [10, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_no_quotes() {
+        assert_eq!(hex!(a0 0B 0C 0d), [0xa0, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_weird_quotes() {
+        assert_eq!(hex!(a0 "0b" 0C 0d), [0xa0, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_no_quotes_start_with_zero() {
+        assert_eq!(hex!(0A 0B 0C0d), [10, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_underscores() {
+        assert_eq!(hex!(0A_0B_0C 0d), [10, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_mixed_no_quotes() {
+        assert_eq!(hex!(1a 0b_0C 0d), [0x1a, 11, 12, 13]);
     }
 }
