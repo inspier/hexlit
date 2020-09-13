@@ -11,8 +11,7 @@ jobs:
     toolchain: ${{ parameters.toolchain }}
   steps:
   - powershell: |
-      #Invoke-WebRequest -Uri "https://win.rustup.rs" -OutFile "rustup-init.exe"
-      #&".\rustup-init.exe" --default-toolchain $(toolchain) -y
+      rustup update
       rustup show
     displayName: 'Install rust'
   - powershell: |
