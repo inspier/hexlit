@@ -16,6 +16,39 @@
 //! ```
 #![no_std]
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! require_even_number_digits {
+    ($e:expr) => {
+        let _: $crate::Even<[(); $e % 2]>;
+    };
+}
+
+pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
+
+pub enum IsEvenNumberofDigits {}
+pub enum IsOddNumberofDigits {}
+
+pub trait HexStringLength {
+    type Marker;
+}
+
+impl HexStringLength for [(); 0] {
+    type Marker = IsEvenNumberofDigits;
+}
+
+impl HexStringLength for [(); 1] {
+    type Marker = IsOddNumberofDigits;
+}
+
+pub trait LengthIsEvenNumberOfHexDigits {
+    type Check;
+}
+
+impl LengthIsEvenNumberOfHexDigits for IsEvenNumberofDigits {
+    type Check = ();
+}
+
 #[macro_export]
 macro_rules! hex {
     (@string $arg:expr) => {{
@@ -58,7 +91,7 @@ macro_rules! hex {
 
         const NUM_SKIPPED: usize = NUM_SPACES + NUM_UNDERSCORES + NUM_QUOTES;
 
-        ["Odd number of hex digits provided."][(($arg.len() - NUM_SKIPPED) % 2) as usize];
+        $crate::require_even_number_digits!($arg.len() - NUM_SKIPPED);
         const ARRAY_LENGTH: usize = ($arg.len() - NUM_SKIPPED) / 2;
         const RESULT: [u8; ARRAY_LENGTH] = {
             // Hack needed for const-eval to work.
@@ -88,9 +121,12 @@ macro_rules! hex {
                 let string_length = s.len();
                 while data_index < string_length && char_index + 1 < string_length {
                     if s[char_index] != b' ' && s[char_index] != b'_' && s[char_index] != b'"' {
-                        data[data_index] =
-                            to_ordinal(s[char_index]) * 16 + to_ordinal(s[char_index + 1]);
-                        char_index += 2;
+                        let mut next_index = char_index + 1;
+                        while next_index < string_length && (s[next_index] == b' ' || s[next_index] == b'_' || s[next_index] == b'"') {
+                            next_index += 1;
+                        }
+                        data[data_index] = to_ordinal(s[char_index]) * 16 + to_ordinal(s[next_index]);
+                        char_index = next_index + 1;
                         data_index += 1;
                     } else {
                         char_index += 1;
