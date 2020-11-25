@@ -24,7 +24,8 @@ macro_rules! require_even_number_digits {
     };
 }
 
-pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
+pub type Even<T> =
+    <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
 pub enum IsEvenNumberofDigits {}
 pub enum IsOddNumberofDigits {}
