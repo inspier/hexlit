@@ -53,42 +53,23 @@ impl LengthIsEvenNumberOfHexDigits for IsEvenNumberofDigits {
 #[macro_export]
 macro_rules! hex {
     (@string $arg:expr) => {{
-        const NUM_SPACES: usize = {
-            let data = $arg.as_bytes();
-            let mut space_count: usize = 0;
+        const DATA: &[u8] = $arg.as_bytes();
+
+        const fn count_occurrences(data: &[u8], c: u8) -> usize {
+            let mut char_count: usize = 0;
             let mut char_index: usize = 0;
             while char_index < data.len() {
-                if data[char_index] == b' ' {
-                    space_count += 1;
+                if data[char_index] == c {
+                    char_count += 1;
                 }
                 char_index += 1;
             }
-            space_count
-        };
-        const NUM_UNDERSCORES: usize = {
-            let data = $arg.as_bytes();
-            let mut underscore_count: usize = 0;
-            let mut char_index: usize = 0;
-            while char_index < data.len() {
-                if data[char_index] == b'_' {
-                    underscore_count += 1;
-                }
-                char_index += 1;
-            }
-            underscore_count
-        };
-        const NUM_QUOTES: usize = {
-            let data = $arg.as_bytes();
-            let mut underscore_count: usize = 0;
-            let mut char_index: usize = 0;
-            while char_index < data.len() {
-                if data[char_index] == b'"' {
-                    underscore_count += 1;
-                }
-                char_index += 1;
-            }
-            underscore_count
-        };
+            char_count
+        }
+
+        const NUM_SPACES: usize = count_occurrences(DATA, b' ');
+        const NUM_UNDERSCORES: usize = count_occurrences(DATA, b'_');
+        const NUM_QUOTES: usize = count_occurrences(DATA, b'"');
 
         const NUM_SKIPPED: usize = NUM_SPACES + NUM_UNDERSCORES + NUM_QUOTES;
 
@@ -113,20 +94,18 @@ macro_rules! hex {
                 }
             }
 
-            /// Converts a hex-string to its byte array representation.
-            const fn convert(s: &str) -> [u8; ARRAY_LENGTH] {
-                let s = s.as_bytes();
+            // Converts a hex-string to its byte array representation.
                 let mut data = [0u8; ARRAY_LENGTH];
                 let mut data_index: usize = 0;
                 let mut char_index: usize = 0;
-                let string_length = s.len();
+                let string_length = $arg.len();
                 while data_index < string_length && char_index + 1 < string_length {
-                    if s[char_index] != b' ' && s[char_index] != b'_' && s[char_index] != b'"' {
+                    if DATA[char_index] != b' ' && DATA[char_index] != b'_' && DATA[char_index] != b'"' {
                         let mut next_index = char_index + 1;
-                        while next_index < string_length && (s[next_index] == b' ' || s[next_index] == b'_' || s[next_index] == b'"') {
+                        while next_index < string_length && (DATA[next_index] == b' ' || DATA[next_index] == b'_' || DATA[next_index] == b'"') {
                             next_index += 1;
                         }
-                        data[data_index] = to_ordinal(s[char_index]) * 16 + to_ordinal(s[next_index]);
+                        data[data_index] = to_ordinal(DATA[char_index]) * 16 + to_ordinal(DATA[next_index]);
                         char_index = next_index + 1;
                         data_index += 1;
                     } else {
@@ -134,8 +113,6 @@ macro_rules! hex {
                     }
                 }
                 data
-            }
-            convert($arg)
         };
         RESULT
     }};
@@ -211,5 +188,6 @@ mod tests {
     #[test]
     fn test_mixed_no_quotes() {
         assert_eq!(hex!(1a 0b_0C 0d), [0x1a, 11, 12, 13]);
+        assert_eq!(hex!(1a 0_b 0C 0d), [0x1a, 11, 12, 13]);
     }
 }
