@@ -73,9 +73,12 @@ pub mod internals {
 
     pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
+    #[doc(hidden)]
     pub enum IsEvenNumberofDigits {}
+    #[doc(hidden)]
     pub enum IsOddNumberofDigits {}
 
+    #[doc(hidden)]
     pub trait HexStringLength {
         type Marker;
     }
@@ -88,6 +91,7 @@ pub mod internals {
         type Marker = IsOddNumberofDigits;
     }
 
+    #[doc(hidden)]
     pub trait LengthIsEvenNumberOfHexDigits {
         type Check;
     }
