@@ -1,5 +1,6 @@
-//! This crate provides the `hex!` macro for converting hexadecimal string literals
-//! to a byte array at compile time.
+//! This crate provides the `hex!` macro for converting
+//! hexadecimal string literals to a byte array at compile
+//! time.
 //!
 //! # Examples
 //! ```
@@ -39,24 +40,26 @@ macro_rules! hex {
         const RESULT: [u8; ARRAY_LENGTH] = {
 
             // Converts a hex-string to its byte array representation.
-                let mut data = [0u8; ARRAY_LENGTH];
-                let mut data_index: usize = 0;
-                let mut char_index: usize = 0;
-                let string_length = $arg.len();
-                while data_index < string_length && char_index + 1 < string_length {
-                    if DATA[char_index] != b' ' && DATA[char_index] != b'_' && DATA[char_index] != b'"' {
-                        let mut next_index = char_index + 1;
-                        while next_index < string_length && (DATA[next_index] == b' ' || DATA[next_index] == b'_' || DATA[next_index] == b'"') {
-                            next_index += 1;
-                        }
-                        data[data_index] = $crate::internals::to_ordinal(DATA[char_index]) * 16 + $crate::internals::to_ordinal(DATA[next_index]);
-                        char_index = next_index + 1;
-                        data_index += 1;
-                    } else {
-                        char_index += 1;
+            let mut data = [0u8; ARRAY_LENGTH];
+            let mut data_index: usize = 0;
+            let mut char_index: usize = 0;
+            let string_length = $arg.len();
+            while data_index < string_length && char_index + 1 < string_length {
+                if !$crate::internals::is_valid_delimiter(DATA[char_index]) {
+                    let mut next_index = char_index + 1;
+                    while next_index < string_length
+                          && $crate::internals::is_valid_delimiter(DATA[next_index]) {
+                        next_index += 1;
                     }
+                    data[data_index] = $crate::internals::to_ordinal(DATA[char_index]) * 16
+                                     + $crate::internals::to_ordinal(DATA[next_index]);
+                    char_index = next_index + 1;
+                    data_index += 1;
+                } else {
+                    char_index += 1;
                 }
-                data
+            }
+            data
         };
         RESULT
     }};
@@ -68,8 +71,7 @@ macro_rules! hex {
 #[doc(hidden)]
 pub mod internals {
 
-    pub type Even<T> =
-    <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
+    pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
     pub enum IsEvenNumberofDigits {}
     pub enum IsOddNumberofDigits {}
@@ -112,7 +114,13 @@ pub mod internals {
         char_count
     }
 
-    // Converts a individual byte into its correct integer counter-part.
+    // Checks if part of set of valid delimiters.
+    pub const fn is_valid_delimiter(c: u8) -> bool {
+        c == b' ' || c == b'_' || c == b'"'
+    }
+
+    // Converts a individual byte into its correct integer
+    // counter-part.
     pub const fn to_ordinal(input: u8) -> u8 {
         match input {
             b'0'..=b'9' => input - b'0',
