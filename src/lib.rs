@@ -20,34 +20,8 @@
 #[macro_export]
 macro_rules! require_even_number_digits {
     ($e:expr) => {
-        let _: $crate::Even<[(); $e % 2]>;
+        let _: $crate::internals::Even<[(); $e % 2]>;
     };
-}
-
-pub type Even<T> =
-    <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
-
-pub enum IsEvenNumberofDigits {}
-pub enum IsOddNumberofDigits {}
-
-pub trait HexStringLength {
-    type Marker;
-}
-
-impl HexStringLength for [(); 0] {
-    type Marker = IsEvenNumberofDigits;
-}
-
-impl HexStringLength for [(); 1] {
-    type Marker = IsOddNumberofDigits;
-}
-
-pub trait LengthIsEvenNumberOfHexDigits {
-    type Check;
-}
-
-impl LengthIsEvenNumberOfHexDigits for IsEvenNumberofDigits {
-    type Check = ();
 }
 
 #[macro_export]
@@ -55,44 +29,14 @@ macro_rules! hex {
     (@string $arg:expr) => {{
         const DATA: &[u8] = $arg.as_bytes();
 
-        const fn count_occurrences(data: &[u8], c: u8) -> usize {
-            let mut char_count: usize = 0;
-            let mut char_index: usize = 0;
-            while char_index < data.len() {
-                if data[char_index] == c {
-                    char_count += 1;
-                }
-                char_index += 1;
-            }
-            char_count
-        }
-
-        const NUM_SPACES: usize = count_occurrences(DATA, b' ');
-        const NUM_UNDERSCORES: usize = count_occurrences(DATA, b'_');
-        const NUM_QUOTES: usize = count_occurrences(DATA, b'"');
-
+        const NUM_SPACES: usize = $crate::internals::count_occurrences(DATA, b' ');
+        const NUM_UNDERSCORES: usize = $crate::internals::count_occurrences(DATA, b'_');
+        const NUM_QUOTES: usize = $crate::internals::count_occurrences(DATA, b'"');
         const NUM_SKIPPED: usize = NUM_SPACES + NUM_UNDERSCORES + NUM_QUOTES;
 
         $crate::require_even_number_digits!($arg.len() - NUM_SKIPPED);
         const ARRAY_LENGTH: usize = ($arg.len() - NUM_SKIPPED) / 2;
         const RESULT: [u8; ARRAY_LENGTH] = {
-            // Hack needed for const-eval to work.
-            const fn always_true() -> bool {
-                true
-            }
-
-            /// Converts a individual byte into its correct integer counter-part.
-            const fn to_ordinal(input: u8) -> u8 {
-                match input {
-                    b'0'..=b'9' => input - b'0',
-                    b'A'..=b'F' => input - b'A' + 10,
-                    b'a'..=b'f' => input - b'a' + 10,
-                    _ => {
-                        ["Invalid hex digit."][(always_true() as usize)];
-                        0 // Unreachable
-                    }
-                }
-            }
 
             // Converts a hex-string to its byte array representation.
                 let mut data = [0u8; ARRAY_LENGTH];
@@ -105,7 +49,7 @@ macro_rules! hex {
                         while next_index < string_length && (DATA[next_index] == b' ' || DATA[next_index] == b'_' || DATA[next_index] == b'"') {
                             next_index += 1;
                         }
-                        data[data_index] = to_ordinal(DATA[char_index]) * 16 + to_ordinal(DATA[next_index]);
+                        data[data_index] = $crate::internals::to_ordinal(DATA[char_index]) * 16 + $crate::internals::to_ordinal(DATA[next_index]);
                         char_index = next_index + 1;
                         data_index += 1;
                     } else {
@@ -119,6 +63,67 @@ macro_rules! hex {
     ($($tt:tt)*) => {
         hex!(@string stringify!($($tt)*))
     };
+}
+
+#[doc(hidden)]
+pub mod internals {
+
+    pub type Even<T> =
+    <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
+
+    pub enum IsEvenNumberofDigits {}
+    pub enum IsOddNumberofDigits {}
+
+    pub trait HexStringLength {
+        type Marker;
+    }
+
+    impl HexStringLength for [(); 0] {
+        type Marker = IsEvenNumberofDigits;
+    }
+
+    impl HexStringLength for [(); 1] {
+        type Marker = IsOddNumberofDigits;
+    }
+
+    pub trait LengthIsEvenNumberOfHexDigits {
+        type Check;
+    }
+
+    impl LengthIsEvenNumberOfHexDigits for IsEvenNumberofDigits {
+        type Check = ();
+    }
+
+    // Hack needed for const-eval to work.
+    pub const fn always_true() -> bool {
+        true
+    }
+
+    // Count the number of occurrences of a char.
+    pub const fn count_occurrences(data: &[u8], c: u8) -> usize {
+        let mut char_count: usize = 0;
+        let mut char_index: usize = 0;
+        while char_index < data.len() {
+            if data[char_index] == c {
+                char_count += 1;
+            }
+            char_index += 1;
+        }
+        char_count
+    }
+
+    // Converts a individual byte into its correct integer counter-part.
+    pub const fn to_ordinal(input: u8) -> u8 {
+        match input {
+            b'0'..=b'9' => input - b'0',
+            b'A'..=b'F' => input - b'A' + 10,
+            b'a'..=b'f' => input - b'a' + 10,
+            _ => {
+                ["Invalid hex digit."][(always_true() as usize)];
+                0 // Unreachable
+            }
+        }
+    }
 }
 
 #[cfg(test)]
