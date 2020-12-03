@@ -1,0 +1,64 @@
+on: [push, pull_request]
+
+name: CI
+
+jobs:
+  test-stable-ubuntu:
+    name: Test Suite | Ubuntu (Stable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+  
+  test-nightly-ubuntu:
+    name: Test Suite | Ubuntu (Nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+  
+  test-stable-macOS:
+    name: Test Suite | macOS (Stable)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+  
+  test-nightly-macOS:
+    name: Test Suite | macOS (Nightly)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
