@@ -6,14 +6,12 @@
 //! ```
 //! use hexlit::hex;
 //!
-//! fn main() {
 //! const DATA: [u8; 4] = hex!("01020304");
 //! assert_eq!(DATA, [1, 2, 3, 4]);
 //! assert_eq!(hex!("a1b2c3d4"), [0xA1, 0xB2, 0xC3, 0xD4]);
 //! assert_eq!(hex!("E5 E6 90 92"), [0xE5, 0xE6, 0x90, 0x92]);
 //! assert_eq!(hex!("0a0B0C0d"), [10, 11, 12, 13]);
 //! assert_eq!(hex!(0a "01" 0C 02), [10, 1, 12, 2]);
-//! }
 //! ```
 #![no_std]
 
@@ -30,15 +28,9 @@ macro_rules! hex {
     (@string $arg:expr) => {{
         const DATA: &[u8] = $arg.as_bytes();
 
-        const NUM_SPACES: usize = $crate::internals::count_occurrences(DATA, b' ');
-        const NUM_UNDERSCORES: usize = $crate::internals::count_occurrences(DATA, b'_');
-        const NUM_QUOTES: usize = $crate::internals::count_occurrences(DATA, b'"');
-        const NUM_SKIPPED: usize = NUM_SPACES + NUM_UNDERSCORES + NUM_QUOTES;
-
-        $crate::require_even_number_digits!($arg.len() - NUM_SKIPPED);
-        const ARRAY_LENGTH: usize = ($arg.len() - NUM_SKIPPED) / 2;
+        const ARRAY_LENGTH: usize = ($arg.len() - $crate::internals::count_skipped(&DATA)) / 2;
+        $crate::require_even_number_digits!(ARRAY_LENGTH);
         const RESULT: [u8; ARRAY_LENGTH] = {
-
             // Converts a hex-string to its byte array representation.
             let mut data = [0u8; ARRAY_LENGTH];
             let mut data_index: usize = 0;
@@ -70,6 +62,8 @@ macro_rules! hex {
 
 #[doc(hidden)]
 pub mod internals {
+
+    const DELIMITERS: [u8; 3] = [b' ', b'"', b'_'];
 
     pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
@@ -106,11 +100,11 @@ pub mod internals {
     }
 
     // Count the number of occurrences of a char.
-    pub const fn count_occurrences(data: &[u8], c: u8) -> usize {
+    pub const fn count_skipped(data: &[u8]) -> usize {
         let mut char_count: usize = 0;
         let mut char_index: usize = 0;
         while char_index < data.len() {
-            if data[char_index] == c {
+            if is_valid_delimiter(data[char_index]) {
                 char_count += 1;
             }
             char_index += 1;
@@ -120,7 +114,13 @@ pub mod internals {
 
     // Checks if part of set of valid delimiters.
     pub const fn is_valid_delimiter(c: u8) -> bool {
-        c == b' ' || c == b'_' || c == b'"'
+        let mut index = 0;
+        let mut result = false;
+        while index < DELIMITERS.len() {
+            result |= c == DELIMITERS[index];
+            index += 1;
+        }
+        result
     }
 
     // Converts a individual byte into its correct integer
