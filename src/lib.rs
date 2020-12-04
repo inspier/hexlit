@@ -28,8 +28,9 @@ macro_rules! hex {
     (@string $arg:expr) => {{
         const DATA: &[u8] = $arg.as_bytes();
 
-        const ARRAY_LENGTH: usize = ($arg.len() - $crate::internals::count_skipped(&DATA)) / 2;
-        $crate::require_even_number_digits!(ARRAY_LENGTH);
+        const SKIP_LENGTH: usize = $crate::internals::count_skipped(&DATA);
+        $crate::require_even_number_digits!($arg.len() - SKIP_LENGTH);
+        const ARRAY_LENGTH: usize = ($arg.len() - SKIP_LENGTH) / 2;
         const RESULT: [u8; ARRAY_LENGTH] = {
             // Converts a hex-string to its byte array representation.
             let mut data = [0u8; ARRAY_LENGTH];
@@ -63,7 +64,7 @@ macro_rules! hex {
 #[doc(hidden)]
 pub mod internals {
 
-    const DELIMITERS: [u8; 3] = [b' ', b'"', b'_'];
+    const DELIMITERS: [u8; 5] = [b' ', b'"', b'_', b'|', b'-'];
 
     pub type Even<T> = <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
@@ -200,6 +201,18 @@ mod tests {
     #[test]
     fn test_underscores() {
         assert_eq!(hex!(0A_0B_0C 0d), [10, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_pipes() {
+        assert_eq!(hex!(0A|0B|0C|0d), [10, 11, 12, 13]);
+        assert_eq!(hex!(0F 03|0B|0C|0d), [15, 3, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_dashes() {
+        assert_eq!(hex!(0A-0B-0C-0d), [10, 11, 12, 13]);
+        assert_eq!(hex!("0F 03-0B 0C-0d 0E"), [15, 3, 11, 12, 13, 14]);
     }
 
     #[test]
