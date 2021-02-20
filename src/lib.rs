@@ -122,6 +122,7 @@ pub mod internals {
 
     // Converts a individual byte into its correct integer
     // counter-part.
+    #[allow(clippy::unnecessary_operation)]
     pub const fn to_ordinal(input: u8) -> u8 {
         match input {
             b'0'..=b'9' => input - b'0',
