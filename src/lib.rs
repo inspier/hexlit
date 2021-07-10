@@ -41,8 +41,6 @@ macro_rules! hex {
 #[doc(hidden)]
 pub mod internals {
 
-    const DELIMITERS: [u8; 5] = [b' ', b'"', b'_', b'|', b'-'];
-
     pub type Even<T> =
         <<T as HexStringLength>::Marker as LengthIsEvenNumberOfHexDigits>::Check;
 
@@ -69,11 +67,6 @@ pub mod internals {
         type Check = ();
     }
 
-    // Hack needed for const-eval to work.
-    pub const fn always_true() -> bool {
-        true
-    }
-
     // Count the number of occurrences of a char.
     pub const fn count_skipped(data: &[u8]) -> usize {
         let mut char_count: usize = 0;
@@ -89,26 +82,20 @@ pub mod internals {
 
     // Checks if part of set of valid delimiters.
     pub const fn is_valid_delimiter(c: u8) -> bool {
-        let mut index = 0;
-        let mut result = false;
-        while index < DELIMITERS.len() {
-            result |= c == DELIMITERS[index];
-            index += 1;
-        }
-        result
+        matches!(c, b' ' | b'"' | b'_' | b'|' | b'-')
     }
 
     // Converts a individual byte into its correct integer
     // counter-part.
-    #[allow(clippy::unnecessary_operation)]
+    #[allow(clippy::unnecessary_operation, unconditional_panic)]
     pub const fn to_ordinal(input: u8) -> u8 {
         match input {
             b'0'..=b'9' => input - b'0',
             b'A'..=b'F' => input - b'A' + 10,
             b'a'..=b'f' => input - b'a' + 10,
             _ => {
-                ["Invalid hex digit."][(always_true() as usize)];
-                0 // Unreachable
+                ["Invalid hex digit."][({ true } as usize)];
+                loop {} // Unreachable
             }
         }
     }
