@@ -7,7 +7,7 @@ A zero-allocation no_std-compatible zero-cost way to convert hex-strings to byte
 
 To add to your Cargo.toml:
 ```toml
-hexlit = "0.5.0"
+hexlit = "0.5.1"
 ```
 
 ## Example
