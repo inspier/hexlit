@@ -27,11 +27,9 @@ macro_rules! require_even_number_digits {
 macro_rules! hex {
     (@string $arg:expr) => {{
         const DATA: &[u8] = $arg.as_bytes();
-
-        const SKIP_LENGTH: usize = $crate::internals::count_skipped(&DATA);
-        $crate::require_even_number_digits!($arg.len() - SKIP_LENGTH);
-        const ARRAY_LENGTH: usize = ($arg.len() - SKIP_LENGTH) / 2;
-        $crate::internals::convert::<ARRAY_LENGTH, {$arg.len()}>(&DATA)
+        const RAW_LENGTH: usize = $arg.len() - $crate::internals::count_skipped(&DATA);
+        $crate::require_even_number_digits!(RAW_LENGTH);
+        $crate::internals::convert::<{RAW_LENGTH / 2}, {$arg.len()}>(&DATA)
     }};
     ($($tt:tt)*) => {
         hex!(@string stringify!($($tt)*))
@@ -87,13 +85,14 @@ pub mod internals {
 
     // Converts a individual byte into its correct integer
     // counter-part.
-    #[allow(clippy::unnecessary_operation, unconditional_panic)]
+    #[allow(clippy::unnecessary_operation)]
     pub const fn to_ordinal(input: u8) -> u8 {
         match input {
             b'0'..=b'9' => input - b'0',
             b'A'..=b'F' => input - b'A' + 10,
             b'a'..=b'f' => input - b'a' + 10,
             _ => {
+                #[allow(unconditional_panic)]
                 ["Invalid hex digit."][({ true } as usize)];
                 loop {} // Unreachable
             }
