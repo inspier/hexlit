@@ -1,6 +1,6 @@
 [package]
 name = "hexlit"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["inspier <devdevin541@gmail.com>"]
 edition = "2018"
 documentation = "https://docs.rs/hexlit"
