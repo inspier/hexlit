@@ -7,7 +7,7 @@ A zero-allocation no_std-compatible zero-cost way to convert hex-strings to byte
 
 To add to your Cargo.toml:
 ```toml
-hexlit = "0.5.2"
+hexlit = "0.5.3"
 ```
 
 ## Example
@@ -23,5 +23,10 @@ fn main() {
     assert_eq!(hex!(1a 0_b 0C 0d), [0x1a, 11, 12, 13]);
     assert_eq!(hex!(0F 03|0B|0C|0d), [15, 3, 11, 12, 13]);
     assert_eq!(hex!(0A-0B-0C-0d), [10, 11, 12, 13]);
+    assert_eq!(hex!(
+        A1 B2
+        C3
+        D4
+    ), [0xA1, 0xB2, 0xC3, 0xD4]);
 }
 ```
