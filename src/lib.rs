@@ -80,7 +80,7 @@ pub mod internals {
 
     // Checks if part of set of valid delimiters.
     pub const fn is_valid_delimiter(c: u8) -> bool {
-        matches!(c, b' ' | b'"' | b'_' | b'|' | b'-')
+        matches!(c, b' ' | b'"' | b'_' | b'|' | b'-' | b'\n')
     }
 
     // Converts a individual byte into its correct integer
@@ -205,5 +205,26 @@ mod tests {
     fn test_mixed_no_quotes() {
         assert_eq!(hex!(1a 0b_0C 0d), [0x1a, 11, 12, 13]);
         assert_eq!(hex!(1a 0_b 0C 0d), [0x1a, 11, 12, 13]);
+    }
+
+    #[test]
+    fn test_new_lines() {
+        let a = hex!(
+            00000000 00000000 00000000
+            00000000
+            00000000 00000000 00000000 00000000 00000000
+        );
+        let b = hex!(
+            00000000 00000000 00000000 00000000
+            00000000 00000000 00000000 00000000 00000000
+        );
+        let c = hex!(
+            00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+        );
+        let d = hex!(00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000);
+
+        assert_eq!(a, b);
+        assert_eq!(b, c);
+        assert_eq!(c, d);
     }
 }
