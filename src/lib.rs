@@ -79,9 +79,7 @@ pub mod internals {
                     next_index += 1;
                 }
 
-                if data[char_index] == b'0'
-                    && (data[next_index] == b'x' || data[next_index] == b'X')
-                {
+                if data[char_index] == b'0' && data[next_index] == b'x' {
                     char_count += 2;
                 }
 
@@ -131,9 +129,7 @@ pub mod internals {
                     next_index += 1;
                 }
 
-                if !(input[char_index] == b'0'
-                    && (input[next_index] == b'x' || input[next_index] == b'X'))
-                {
+                if !(input[char_index] == b'0' && input[next_index] == b'x') {
                     data[data_index] = to_ordinal(input[char_index]) * 16
                         + to_ordinal(input[next_index]);
                     data_index += 1;
