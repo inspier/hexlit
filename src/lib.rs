@@ -8,6 +8,7 @@
 //!
 //! const DATA: [u8; 4] = hex!("01020304");
 //! assert_eq!(DATA, [1, 2, 3, 4]);
+//! assert_eq!(hex!("0xDEADBEEF"), [0xDE, 0xAD, 0xBE, 0xEF]);
 //! assert_eq!(hex!("a1b2c3d4"), [0xA1, 0xB2, 0xC3, 0xD4]);
 //! assert_eq!(hex!("E5 E6 90 92"), [0xE5, 0xE6, 0x90, 0x92]);
 //! assert_eq!(hex!("0a0B0C0d"), [10, 11, 12, 13]);
