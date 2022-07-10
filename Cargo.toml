@@ -2,7 +2,7 @@
 name = "hexlit"
 version = "0.5.3"
 authors = ["inspier <devdevin541@gmail.com>"]
-edition = "2018"
+edition = "2021"
 documentation = "https://docs.rs/hexlit"
 repository = "https://github.com/inspier/hexlit"
 description = "A zero-allocation no_std-compatible zero-cost way to convert hex-strings to byte-arrays at compile time."

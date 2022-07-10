@@ -69,12 +69,28 @@ pub mod internals {
     pub const fn count_skipped(data: &[u8]) -> usize {
         let mut char_count: usize = 0;
         let mut char_index: usize = 0;
+
         while char_index < data.len() {
-            if is_valid_delimiter(data[char_index]) {
+            if char_index + 1 < data.len() && !is_valid_delimiter(data[char_index]) {
+                let mut next_index = char_index + 1;
+                while next_index < data.len() && is_valid_delimiter(data[next_index]) {
+                    char_count += 1;
+                    next_index += 1;
+                }
+
+                if data[char_index] == b'0'
+                    && (data[next_index] == b'x' || data[next_index] == b'X')
+                {
+                    char_count += 2;
+                }
+
+                char_index = next_index + 1;
+            } else {
+                char_index += 1;
                 char_count += 1;
             }
-            char_index += 1;
         }
+
         char_count
     }
 
@@ -113,10 +129,15 @@ pub mod internals {
                 while next_index < STRING_SIZE && is_valid_delimiter(input[next_index]) {
                     next_index += 1;
                 }
-                data[data_index] =
-                    to_ordinal(input[char_index]) * 16 + to_ordinal(input[next_index]);
+
+                if !(input[char_index] == b'0'
+                    && (input[next_index] == b'x' || input[next_index] == b'X'))
+                {
+                    data[data_index] = to_ordinal(input[char_index]) * 16
+                        + to_ordinal(input[next_index]);
+                    data_index += 1;
+                }
                 char_index = next_index + 1;
-                data_index += 1;
             } else {
                 char_index += 1;
             }
@@ -226,5 +247,16 @@ mod tests {
         assert_eq!(a, b);
         assert_eq!(b, c);
         assert_eq!(c, d);
+    }
+
+    #[test]
+    fn test_hex_prefix() {
+        assert_eq!(
+            hex!("0xe9e7cea3dedca5984780bafc599bd69add087d56"),
+            [
+                0xE9, 0xE7, 0xCE, 0xA3, 0xDE, 0xDC, 0xA5, 0x98, 0x47, 0x80, 0xBA, 0xFC,
+                0x59, 0x9B, 0xD6, 0x9A, 0xDD, 0x08, 0x7D, 0x56
+            ]
+        );
     }
 }
